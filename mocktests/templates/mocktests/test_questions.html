@@ -8,10 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Markdown rendering + sanitization -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-    <!-- Syntax highlighting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
     <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
     <style>
@@ -25,7 +23,6 @@
         }
         body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
 
-        /* topbar */
         .topbar{
             position:sticky;top:0;z-index:50;height:58px;padding:0 32px;
             background:rgba(6,9,14,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
@@ -41,13 +38,11 @@
         }
         .topbar-link:hover{color:var(--accent);}
 
-        /* layout */
         .review-body{
             display:grid;grid-template-columns:1fr 240px;gap:22px;
             max-width:1100px;margin:28px auto;padding:0 28px 80px;
         }
 
-        /* question card */
         .question-card{
             background:var(--surface);border:1px solid var(--border);
             border-radius:16px;padding:30px;
@@ -62,7 +57,7 @@
         .q-number{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);}
         .q-text{font-size:18px;font-weight:600;color:#fff;line-height:1.55;margin-bottom:24px;}
 
-        /* ---- Markdown-rendered content inside .q-text ---- */
+        /* Markdown-rendered content */
         .q-text p{margin:0 0 10px;}
         .q-text p:last-child{margin-bottom:0;}
         .q-text strong{color:#fff;font-weight:700;}
@@ -95,6 +90,19 @@
             border:none;
             color:inherit;
             font-size:inherit;
+        }
+
+        /* ---- Question image ---- */
+        .q-text .q-diagram{
+            display:block;
+            max-width:100%;
+            max-height:400px;
+            margin:16px 0;
+            border-radius:8px;
+            border:1px solid var(--border);
+            background:#060a12;
+            padding:8px;
+            object-fit:contain;
         }
 
         .options{display:flex;flex-direction:column;gap:10px;}
@@ -139,7 +147,6 @@
         }
         .explanation-text{font-size:14px;color:var(--text-2);line-height:1.6;}
 
-        /* ---- Markdown-rendered content inside .explanation-text ---- */
         .explanation-text p{margin:0 0 8px;}
         .explanation-text p:last-child{margin-bottom:0;}
         .explanation-text code{
@@ -170,7 +177,6 @@
             font-size:inherit;
         }
 
-        /* nav */
         .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:12px;}
         .nav-btn{
             display:inline-flex;align-items:center;gap:7px;
@@ -185,7 +191,6 @@
         .nav-btn:disabled{opacity:0.35;cursor:not-allowed;}
         .page-indicator{font-family:var(--mono);font-size:13px;color:var(--text-3);}
 
-        /* palette */
         .palette-card{
             background:var(--surface);border:1px solid var(--border);
             border-radius:16px;padding:20px;
@@ -227,7 +232,6 @@
 
 <div class="review-body">
 
-    <!-- Question card -->
     <div>
         <div class="question-card" id="question-card">
             <div class="q-meta">
@@ -266,7 +270,6 @@
         </div>
     </div>
 
-    <!-- Palette -->
     <div class="palette-card">
         <div class="palette-title">Question Palette</div>
         <div class="palette-grid" id="palette-grid"></div>

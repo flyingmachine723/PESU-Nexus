@@ -4,16 +4,17 @@ from mocktests.models import Mock_Test, Question
 
 
 class Command(BaseCommand):
-    help = 'Seeds the database with the Math for AI & DS ISA-1 Mock Test (Sem 3)'
+    help = 'Seeds the database with the EPD ISA-1 Mock Test (Sem 1)'
 
     def handle(self, *args, **kwargs):
-        self.create_math_ai_test()
+        self.create_epd_test()
 
     def _bulk_create_questions(self, test, questions_data):
         objs = [
             Question(
                 test=test,
                 question_desc=q['desc'],
+                question_image=q.get('image', '') or None,
                 option_a=q['a'], option_b=q['b'],
                 option_c=q['c'], option_d=q['d'],
                 correct_answer=q['ans'],
@@ -26,23 +27,23 @@ class Command(BaseCommand):
         total = sum(q['marks'] for q in questions_data)
         one = sum(1 for q in questions_data if q['marks'] == 1)
         two = sum(1 for q in questions_data if q['marks'] == 2)
+        img = sum(1 for q in questions_data if q.get('image'))
         self.stdout.write(self.style.SUCCESS(
             f'  -> {len(questions_data)} questions | 1-markers: {one} | '
-            f'2-markers: {two} | Total marks: {total}'
+            f'2-markers: {two} | With image: {img} | Total marks: {total}'
         ))
 
     @transaction.atomic
-    def create_math_ai_test(self):
+    def create_epd_test(self):
         test, created = Mock_Test.objects.get_or_create(
-            title="Math for AI & DS ISA-1 Mock Test",
+            title="EPD ISA-1 Mock Test",
             defaults={
                 'description': (
-                    "Linear Algebra for AI & DS. Fundamental Subspaces, LU/LDU, "
-                    "QR, SVD, Projections, Eigenvalues, PCA, Positive Definite. "
-                    "30 questions, 40 marks, 65 minutes."
+                    "Electronic Principles and Devices. Unit 1 (Semiconductor Diode) & "
+                    "Unit 2 (Diode Applications). 30 questions, 40 marks, 65 minutes."
                 ),
-                'course_name': "Mathematics for AI & DS",
-                'semester': 3,
+                'course_name': "Electronic Principles and Devices",
+                'semester': 1,
                 'total_qns': 30,
                 'duration': 65,
             }
@@ -51,314 +52,283 @@ class Command(BaseCommand):
             Question.objects.filter(test=test).delete()
             test.total_qns = 30
             test.duration = 65
+            test.semester = 1
             test.save()
 
         self.stdout.write(self.style.SUCCESS(f'Creating Questions for "{test.title}"...'))
 
         questions_data = [
             # ==================================================
-            # 2-MARKERS (10 × 2 = 20 marks)
+            # 2-MARKERS (10 total — 5 Unit 1, 5 Unit 2)
             # ==================================================
+            # ISA Q1.a — diode voltage numerical
             {
                 'desc': (
-                    'For the matrix A = [[1, 2, 3], [1, 1, 1], [2, 4, 6]], '
-                    'what is the basis of the Column Space C(A)?'
+                    'Given a diode current of 16 mA, V_T = 26 mV, n = 1, and I_S = 1 nA, '
+                    'find the applied voltage V_D.'
                 ),
-                'a': '{(1,1,2), (2,1,4)} — the pivot columns of A',
-                'b': '{(1,2,3), (1,1,1), (2,4,6)}',
-                'c': '{(1,0,0), (0,1,0), (0,0,1)}',
-                'd': '{(3,1,6)} only',
+                'a': '0.431 V', 'b': '0.215 V', 'c': '0.862 V', 'd': '1.204 V',
                 'ans': 'A', 'marks': 2,
-                'exp': 'After row reduction, the pivots are in columns 1 and 2 of A. The basis of C(A) is {(1,1,2), (2,1,4)}. The third column is a multiple of the first.'
+                'exp': 'I_D = I_S(e^(V_D/nV_T) − 1) → 16 mA = 1 nA(e^(V_D/26mV) − 1) → 16×10⁶ = e^(V_D/26mV) → V_D/26mV = 16.5881 → V_D = 0.431 V.'
             },
+            # ISA Q1.b — clipper (image-based)
             {
                 'desc': (
-                    'For the matrix A = [[1,2,3],[1,1,1],[2,4,6]], the row space Row(A) '
-                    'is spanned by which rows?'
+                    'In the following clipper circuit, find the transition voltage (assume ideal diode).'
                 ),
-                'a': 'Row 1 and Row 2 of A',
-                'b': 'Row 1, Row 2, and Row 3 of A',
-                'c': 'Row 3 only',
-                'd': 'All three rows are independent',
+                'image': 'question_images/isa_q1b_clipper.png',
+                'a': '4 V', 'b': '8 V', 'c': '0 V', 'd': '−4 V',
                 'ans': 'A', 'marks': 2,
-                'exp': 'Row 3 = 2 × Row 1, so it is not independent. The row space is spanned by Rows 1 and 2.'
+                'exp': 'The transition voltage is 4 V (from the source in series with the diode).'
             },
+            # ISA Q1.c — shunt capacitor filter with CT-FWR (image-based)
             {
                 'desc': (
-                    'Find the projection of b = (1, 2, 7) onto the column space of A '
-                    'spanned by (1, 1, 7, 2) and (1, -1, 4). What is the projection vector p?'
+                    'For the shunt capacitor filter used with a centre tap full wave rectifier shown '
+                    'below, what is the working principle during the positive half cycle?'
                 ),
-                'a': 'Approximately (2, 0, 11, 2)',
-                'b': '(1, 2, 7) exactly',
-                'c': '(0, 0, 0)',
-                'd': '(1, 1, 7)',
+                'image': 'question_images/isa_q1c_filter.png',
+                'a': 'D1 is forward biased, capacitor charges to Vm, then discharges through RL',
+                'b': 'D2 is forward biased, capacitor charges to Vm, then discharges through RL',
+                'c': 'Both D1 and D2 are reverse biased, capacitor discharges through RL',
+                'd': 'Capacitor discharges fully to 0 V before next half cycle',
                 'ans': 'A', 'marks': 2,
-                'exp': 'Using least squares: p = A(AᵀA)⁻¹Aᵀb. Solving gives p ≈ (2, 0, 11, 2).'
+                'exp': 'During the positive half cycle, D1 is forward biased in the centre tap FWR. The capacitor charges to Vm then discharges through RL, keeping output nearly constant.'
             },
+            # ISA Q1.d — half-wave rectifier Vm calculation (image-based)
             {
                 'desc': (
-                    'A = [[1, 1, 0]]. Compute A Aᵀ. What are its eigenvalues?'
+                    'For the half-wave rectifier with silicon diode (V_k = 0.7 V) shown below, '
+                    'V_dc = 2 V. What is the peak input voltage V_m?'
                 ),
-                'a': 'λ₁ = 3, λ₂ = 1', 'b': 'λ₁ = 2, λ₂ = 0',
-                'c': 'λ₁ = 1, λ₂ = 1', 'd': 'λ₁ = 4, λ₂ = 2',
+                'image': 'question_images/isa_q1d_hwr.png',
+                'a': '6.98 V', 'b': '2 V', 'c': '6.28 V', 'd': '5.6 V',
                 'ans': 'A', 'marks': 2,
-                'exp': 'A = [[1,1,0]], so A Aᵀ = [[2, 1],[1, 2]]. det(A Aᵀ − λI) = (2−λ)² − 1 = 0 → λ = 3 or 1. Singular values: σ₁=√3, σ₂=1.'
+                'exp': 'V_dc ≈ 0.318(V_m − V_k) → 2 = 0.318(V_m − 0.7) → V_m = 6.98 V.'
             },
+            # ISA Q6 — parallel bias clipper (image-based)
             {
                 'desc': (
-                    'For what value of k is the system x + y = 2, 2x + 2y = k consistent?'
+                    'In the parallel bias clipper shown below, assume the ideal diode is turned ON. '
+                    'What is the output voltage V_o?'
                 ),
-                'a': 'k = 4', 'b': 'k = 2', 'c': 'k = 0', 'd': 'k = any value',
+                'image': 'question_images/isa_q6_clipper.png',
+                'a': '4 V', 'b': '8 V', 'c': '−4 V', 'd': '0 V',
                 'ans': 'A', 'marks': 2,
-                'exp': 'For consistency, the second equation must be 2× the first: k = 4. Otherwise the system is inconsistent (parallel lines).'
+                'exp': 'When the diode is ON, the output is clamped directly across the 4 V supply.'
             },
+            # ISA Q9 — two-diode circuit (image-based)
             {
                 'desc': (
-                    'For what value of h are the vectors v₁ = (1,2,3), v₂ = (2,4,h), '
-                    'v₃ = (1,2,3) linearly independent?'
+                    'Determine V_0 for the following circuit with two silicon diodes.'
                 ),
-                'a': 'Never — v₁ and v₃ are identical',
-                'b': 'h ≠ 6', 'c': 'h = 6', 'd': 'h = 0',
+                'image': 'question_images/isa_q9_two_diode.png',
+                'a': '−4.3 V', 'b': '−5 V', 'c': '0.7 V', 'd': '−5.7 V',
                 'ans': 'A', 'marks': 2,
-                'exp': 'v₁ and v₃ are the same vector, so the set is always linearly dependent regardless of h.'
+                'exp': 'The Si diode with −5 V at cathode is ON, the other is OFF. V_0 = −5 V + 0.7 V = −4.3 V.'
             },
+            # ISA Q7 — parallel diode output (image-based)
             {
                 'desc': (
-                    'Let T: ℝ² → ℝ² be T(x, y) = (x + y, x − y + 2). '
-                    'Which statement is correct?'
+                    'In the parallel diode circuit shown below, what is the output voltage V_o?'
                 ),
-                'a': 'T is not linear because T(0,0) = (0, 2) ≠ (0,0)',
-                'b': 'T is linear because both components are linear',
-                'c': 'T is linear but not invertible',
-                'd': 'T is linear only when x + y > 0',
+                'image': 'question_images/isa_q7_parallel.png',
+                'a': '0.7 V', 'b': '10 V', 'c': '9.3 V', 'd': '0 V',
                 'ans': 'A', 'marks': 2,
-                'exp': 'A linear transformation must map the origin to the origin. T(0,0) = (0, 2) ≠ (0,0), so T is not linear.'
+                'exp': 'Diodes in parallel are forward biased; output is clamped to the knee voltage of Si, V_o = 0.7 V.'
             },
+            # ISA Q11 — series diode V_D (image-based)
             {
                 'desc': (
-                    'A = [[4, 1], [2, 3]]. What are its eigenvalues?'
+                    'For the series diode configuration shown below with +0.5 V applied, '
+                    'determine V_D.'
                 ),
-                'a': 'λ₁ = 5, λ₂ = 2', 'b': 'λ₁ = 4, λ₂ = 3',
-                'c': 'λ₁ = 6, λ₂ = 1', 'd': 'λ₁ = 3, λ₂ = 4',
+                'image': 'question_images/isa_q11_series.png',
+                'a': '0.5 V', 'b': '0.7 V', 'c': '0 V', 'd': '1.2 V',
                 'ans': 'A', 'marks': 2,
-                'exp': 'det(A − λI) = (4−λ)(3−λ) − 2 = λ² − 7λ + 10 = 0 → λ = 5 or 2.'
+                'exp': 'Applied voltage 0.5 V < knee voltage 0.7 V, so diode is OFF. Voltage across diode V_D = 0.5 V.'
             },
+            # ISA Q12 — LED polarity detector R (image-based)
             {
                 'desc': (
-                    'A 3×3 matrix A has eigenvalues 2, 3, λ. If Trace(A) = 10, what is det(A)?'
+                    'In the LED polarity detector shown below, find R to ensure 20 mA through the '
+                    'on diode. Assume V_LED = 2 V, +8 V source.'
                 ),
-                'a': '30', 'b': '10', 'c': '6', 'd': '60',
+                'image': 'question_images/isa_q12_led.png',
+                'a': '300 Ω', 'b': '400 Ω', 'c': '200 Ω', 'd': '500 Ω',
                 'ans': 'A', 'marks': 2,
-                'exp': 'Trace = sum of eigenvalues → 2 + 3 + λ = 10 → λ = 5. det(A) = product = 2 × 3 × 5 = 30.'
+                'exp': 'I = (E − V_LED)/R = (8 − 2)/R = 20 mA → R = 6V/20mA = 300 Ω.'
             },
+            # ISA Q14 — capacitor voltage V_C (image-based)
             {
                 'desc': (
-                    'For what range of b is the matrix [[1, b], [b, 9]] positive definite?'
+                    'In the following circuit, find the capacitor voltage V_C. Assume ideal diode '
+                    'and V1 = 0.5 V.'
                 ),
-                'a': '−3 < b < 3', 'b': 'b > 0',
-                'c': 'b < 9', 'd': 'b = 0 only',
+                'image': 'question_images/isa_q14_cap.png',
+                'a': '1.5 V', 'b': '2 V', 'c': '0.5 V', 'd': '1 V',
                 'ans': 'A', 'marks': 2,
-                'exp': 'Leading principal minors: det(1) = 1 > 0 ✓; det = 9 − b² > 0 → b² < 9 → −3 < b < 3.'
+                'exp': 'V_C = 1.5 V.'
             },
 
             # ==================================================
-            # 1-MARKERS (20 × 1 = 20 marks)
+            # 1-MARKERS (20 total — 10 Unit 1, 10 Unit 2)
             # ==================================================
+            # Unit 1: thermal voltage
             {
-                'desc': (
-                    'Let T: ℝ² → ℝ² be T(x, y) = (2x + y, x − 3y). '
-                    'What is the matrix of T with respect to the standard basis?'
-                ),
-                'a': '[[2, 1], [1, -3]]', 'b': '[[2, 1], [3, -1]]',
-                'c': '[[1, 2], [-3, 1]]', 'd': '[[2, -3], [1, 1]]',
+                'desc': 'The thermal voltage V_T of a diode at room temperature (300 K) is approximately:',
+                'a': '25.9 mV', 'b': '12.5 mV', 'c': '50 mV', 'd': '100 mV',
                 'ans': 'A', 'marks': 1,
-                'exp': 'Columns are images of basis vectors: T(1,0) = (2,1), T(0,1) = (1,−3). Matrix = [[2,1],[1,−3]].'
+                'exp': 'V_T = kT/q = (1.38×10⁻²³ × 300)/(1.6×10⁻¹⁹) = 25.875 mV ≈ 26 mV.'
             },
+            # Unit 1: semiconductor materials
             {
-                'desc': (
-                    'A = [a_ij] is a 3×4 matrix with a_ij = (−1)^j. What is rank(A)?'
-                ),
-                'a': '1', 'b': '3', 'c': '4', 'd': '0',
-                'ans': 'A', 'marks': 1,
-                'exp': 'Each column has constant entries (−1 or 1). All columns are multiples of each other. Only 1 linearly independent row → rank = 1.'
+                'desc': 'Which of the following is NOT a semiconductor material used in electronic devices?',
+                'a': 'Silicon', 'b': 'Germanium', 'c': 'Gallium Arsenide', 'd': 'Aluminium',
+                'ans': 'D', 'marks': 1,
+                'exp': 'Ge, Si, and GaAs are the three most common semiconductor materials. Aluminium is a conductor.'
             },
+            # Unit 1: n-type doping
             {
-                'desc': (
-                    'Let W = {(x, y, z) ∈ ℝ³ : x + y + z = 0}. What is the dimension of W?'
-                ),
-                'a': '2', 'b': '3', 'c': '1', 'd': '0',
+                'desc': 'An n-type semiconductor is formed by doping with:',
+                'a': 'Pentavalent impurities', 'b': 'Trivalent impurities',
+                'c': 'Tetravalent impurities', 'd': 'Hexavalent impurities',
                 'ans': 'A', 'marks': 1,
-                'exp': 'One constraint reduces ℝ³ to a plane through the origin. Dimension = 3 − 1 = 2. Basis: {(1, −1, 0), (1, 0, −1)}.'
+                'exp': 'n-type is created by introducing pentavalent impurities (antimony, arsenic, phosphorus).'
             },
+            # Unit 1: depletion region
             {
                 'desc': (
-                    'Which transformation T: ℝ² → ℝ² is linear?'
+                    'In an unbiased p-n junction, the region near the junction that is depleted '
+                    'of free carriers is called:'
                 ),
-                'a': 'T(x, y) = (2x + y, x − y)',
-                'b': 'T(x, y) = (x², y)',
-                'c': 'T(x, y) = (x + 1, y)',
-                'd': 'T(x, y) = (xy, y)',
+                'a': 'Depletion region', 'b': 'Neutral region',
+                'c': 'Conduction region', 'd': 'Valence region',
                 'ans': 'A', 'marks': 1,
-                'exp': 'Only A has both components as linear combinations of x and y. B has x², C has a constant, D has xy.'
+                'exp': 'The region of uncovered positive and negative ions is called the depletion region.'
             },
+            # Unit 1: barrier voltage temperature coefficient
             {
-                'desc': (
-                    'If the rank of a 3×3 matrix A is 2, then the set of all vectors Ax forms:'
-                ),
-                'a': 'A plane through the origin in ℝ³',
-                'b': 'A line through the origin',
-                'c': 'All of ℝ³',
-                'd': 'The origin only',
+                'desc': 'The barrier voltage of a silicon diode decreases by how much for every 1°C rise in temperature?',
+                'a': '2.5 mV/°C', 'b': '5 mV/°C', 'c': '1.5 mV/°C', 'd': '0.5 mV/°C',
                 'ans': 'A', 'marks': 1,
-                'exp': 'Rank = dimension of column space = 2 → image is a 2D subspace (plane) of ℝ³.'
+                'exp': 'Barrier voltage decreases by 2.5 mV/°C rise in temperature for both Ge and Si.'
             },
+            # Unit 1: I_S doubling
             {
-                'desc': (
-                    'Which property of a projection matrix P is FALSE?'
-                ),
-                'a': 'P is always invertible',
-                'b': 'P² = P',
-                'c': 'P = Pᵀ',
-                'd': 'P has eigenvalues 0 or 1',
+                'desc': 'The reverse saturation current of a diode approximately doubles for every:',
+                'a': '10 °C rise in temperature', 'b': '5 °C rise in temperature',
+                'c': '20 °C rise in temperature', 'd': '1 °C rise in temperature',
                 'ans': 'A', 'marks': 1,
-                'exp': 'A projection matrix is not invertible (unless it is the identity). P² = P, P = Pᵀ, and eigenvalues are 0 or 1.'
+                'exp': 'Reverse saturation current approximately doubles for every 10 °C rise in temperature.'
             },
+            # Unit 1: AC resistance range
             {
-                'desc': (
-                    'What is the shape/property of any covariance matrix?'
-                ),
-                'a': 'Always symmetric', 'b': 'Always diagonal',
-                'c': 'Always skew-symmetric', 'd': 'Always upper triangular',
+                'desc': 'The AC or dynamic resistance of a diode in the active region typically ranges from:',
+                'a': '1 Ω to 100 Ω', 'b': '10 kΩ to 100 kΩ',
+                'c': '1 MΩ to 10 MΩ', 'd': '0.1 Ω to 1 Ω',
                 'ans': 'A', 'marks': 1,
-                'exp': 'A covariance matrix is always symmetric: Cov(X, Y) = Cov(Y, X).'
+                'exp': 'AC resistance in the active region typically ranges from 1 Ω to 100 Ω.'
             },
+            # Unit 1: Shockley equation form
             {
-                'desc': (
-                    'PCA uses an orthogonal transformation. What does "orthogonal" ensure about the principal components?'
-                ),
-                'a': 'The principal components are uncorrelated and mutually perpendicular',
-                'b': 'The principal components are all equal',
-                'c': 'The principal components are only positive numbers',
-                'd': 'The principal components have unit variance',
-                'ans': 'A', 'marks': 1,
-                'exp': 'Orthogonal transformation means the resulting principal components are uncorrelated (mutually perpendicular in feature space), so they capture independent directions of variance.'
+                'desc': "Identify the correct Shockley's current equation.",
+                'a': 'I_D = I_S e^((V_D/nV_T) − 1)', 'b': 'I_D = I_S(e^(V_D/nV_T) − 1)',
+                'c': 'I_D = I_S(e^(nV_T/V_D) − 1)', 'd': 'I_D = I_S(e^(V_D/V_T) + 1)',
+                'ans': 'B', 'marks': 1,
+                'exp': "Shockley's equation: I_D = I_S(e^(V_D/nV_T) − 1)."
             },
+            # Unit 1: Zener breakdown doping
             {
-                'desc': (
-                    'If Q is an orthogonal matrix, what is QᵀQ?'
-                ),
-                'a': 'I (the identity matrix)', 'b': 'Q',
-                'c': 'Q²', 'd': 'A zero matrix',
+                'desc': 'Zener breakdown occurs in diodes that are:',
+                'a': 'Highly doped', 'b': 'Lightly doped',
+                'c': 'Not doped', 'd': 'Moderately doped',
                 'ans': 'A', 'marks': 1,
-                'exp': 'For an orthogonal matrix, columns are orthonormal: QᵀQ = QQᵀ = I.'
+                'exp': 'Zener breakdown occurs in highly doped diodes with a narrow depletion region.'
             },
+            # Unit 1: ideal diode drop
             {
-                'desc': (
-                    'The sum of the eigenvalues of a square matrix A equals:'
-                ),
-                'a': 'The trace of A', 'b': 'The determinant of A',
-                'c': 'The rank of A', 'd': 'Zero always',
+                'desc': 'Drop across an ideal diode when it is forward biased is:',
+                'a': '0 V', 'b': '0.7 V', 'c': '0.3 V', 'd': '1.2 V',
                 'ans': 'A', 'marks': 1,
-                'exp': 'Sum of eigenvalues = trace of A. Product of eigenvalues = determinant of A.'
+                'exp': 'An ideal diode acts as a closed switch with zero voltage drop when forward biased.'
             },
+            # Unit 2: Zener depletion narrow
             {
-                'desc': (
-                    'In least squares, the residual e = b − p is always:'
-                ),
-                'a': 'Orthogonal to the column space of A',
-                'b': 'Parallel to the column space of A',
-                'c': 'Zero', 'd': 'Equal to b',
+                'desc': 'Zener diodes are usually heavily doped diodes, hence the depletion layer is:',
+                'a': 'Very narrow', 'b': 'Very wide', 'c': 'Moderately wide', 'd': 'Zero',
                 'ans': 'A', 'marks': 1,
-                'exp': 'The residual b − p is orthogonal to the column space of A. That is what makes p the closest point in C(A) to b.'
+                'exp': 'Heavy doping makes the depletion layer very narrow.'
             },
+            # Unit 2: Zener incorrect condition
             {
-                'desc': (
-                    'PCA reduces dimensionality by keeping components with:'
-                ),
-                'a': 'The largest eigenvalues of the covariance matrix',
-                'b': 'The smallest eigenvalues',
-                'c': 'The largest negative eigenvalues',
-                'd': 'All eigenvalues equally',
+                'desc': 'In a Zener voltage regulator, which of the following is an INCORRECT condition?',
+                'a': 'Vin should be lesser than Vz', 'b': 'Vin should be greater than Vz',
+                'c': 'Iz should be greater than Izmin', 'd': 'Iz should be less than or equal to Izmax',
                 'ans': 'A', 'marks': 1,
-                'exp': 'PCA keeps directions of maximum variance, which correspond to the largest eigenvalues of the covariance matrix.'
+                'exp': 'Vin must be greater than Vz for the Zener to operate in the breakdown region.'
             },
+            # Unit 2: Zener I_Zmax
             {
-                'desc': (
-                    'If a matrix A is diagonalizable as A = SΛS⁻¹, then A⁶⁵ equals:'
-                ),
-                'a': 'SΛ⁶⁵S⁻¹', 'b': 'S⁶⁵ΛS⁻¹',
-                'c': 'SΛS⁻¹ × 65', 'd': '65Λ',
+                'desc': 'For a Zener regulator with V_Z = 14 V and P_max = 400 mW, the maximum Zener current I_Zmax is:',
+                'a': '28.57 mA', 'b': '14.28 mA', 'c': '57.14 mA', 'd': '7.14 mA',
                 'ans': 'A', 'marks': 1,
-                'exp': 'Diagonalization property: Aⁿ = SΛⁿS⁻¹. So A⁶⁵ = SΛ⁶⁵S⁻¹.'
+                'exp': 'I_Zmax = P_max / V_Z = 400 mW / 14 V = 28.57 mA.'
             },
+            # Unit 2: ripple factor values
             {
-                'desc': (
-                    'A = [[3, 4, 2], [0, 1, 2], [0, 0, 2]] has eigenvalues 3, 1, 2. '
-                    'What are the eigenvalues of A + I?'
-                ),
-                'a': '4, 2, 3', 'b': '3, 1, 2',
-                'c': '4, 4, 3', 'd': '0, 0, 1',
+                'desc': 'The ripple factor of a Half Wave Rectifier (ideal) and Full Wave Rectifier (ideal) respectively are:',
+                'a': '1.21 and 0.48', 'b': '0.48 and 1.21',
+                'c': '1.0 and 0.5', 'd': '0.81 and 0.81',
                 'ans': 'A', 'marks': 1,
-                'exp': 'If λ is an eigenvalue of A, then λ + c is an eigenvalue of A + cI. So 3+1=4, 1+1=2, 2+1=3.'
+                'exp': 'Ripple factor of HWR is 1.21; FWR is 0.48.'
             },
+            # Unit 2: diode count in rectifiers
             {
-                'desc': (
-                    'For a matrix A_{n×n} with N(A) = {0} (nullspace is trivial), '
-                    'which of the following is FALSE?'
-                ),
-                'a': 'A is singular', 'b': 'rank(A) = n',
-                'c': 'A is invertible', 'd': 'det(A) ≠ 0',
+                'desc': 'How many diodes are required for a Bridge Full Wave Rectifier and a Center Tap Full Wave Rectifier respectively?',
+                'a': '4 and 2', 'b': '2 and 4', 'c': '1 and 2', 'd': '4 and 1',
                 'ans': 'A', 'marks': 1,
-                'exp': 'If the nullspace is trivial, A is nonsingular (invertible), rank n, det ≠ 0. Calling it singular is FALSE.'
+                'exp': 'Bridge FWR requires 4 diodes. Center Tap FWR requires 2 diodes.'
             },
+            # Unit 2: shunt capacitor placement
             {
-                'desc': (
-                    'The dimension of the subspace of all 2×2 symmetric matrices is:'
-                ),
-                'a': '3', 'b': '4', 'c': '2', 'd': '1',
+                'desc': 'In a shunt capacitor filter, the capacitor is connected:',
+                'a': 'In parallel with the load', 'b': 'In series with the load',
+                'c': 'In series with the diode', 'd': 'Across the transformer',
                 'ans': 'A', 'marks': 1,
-                'exp': 'A 2×2 symmetric matrix has 3 free entries: [[a, b], [b, c]]. Basis dimension = 3.'
+                'exp': 'Shunt capacitor filter places C in parallel with the load R_L.'
             },
+            # Unit 2: regulated PS block
             {
-                'desc': (
-                    'A = [[1, 4, -2], [1, 7, -6], [0, 3, q]]. Which value of q makes '
-                    'the system singular?'
-                ),
-                'a': 'q = -4', 'b': 'q = 4', 'c': 'q = 0', 'd': 'q = 2',
+                'desc': 'In a regulated power supply, which block converts AC to pulsating DC?',
+                'a': 'Rectifier', 'b': 'Transformer', 'c': 'Filter', 'd': 'Regulator',
                 'ans': 'A', 'marks': 1,
-                'exp': 'After row operations, q = −4 removes the last pivot, making the matrix singular (rank < 3).'
+                'exp': 'The rectifier converts AC to pulsating DC.'
             },
+            # Unit 2: clipper purpose
             {
-                'desc': (
-                    'A 3×3 matrix A has eigenvalues 2, −1, 3, 0 — wait, that is 4 values. '
-                    'For a 4×4 matrix with eigenvalues 2, −1, 3, 0, which is FALSE?'
-                ),
-                'a': 'A is invertible', 'b': 'det(A) = 0',
-                'c': 'trace(A) = 4', 'd': 'A has a zero eigenvalue',
+                'desc': 'A clipper circuit is used to:',
+                'a': 'Remove a portion of the input waveform', 'b': 'Shift the DC level of the waveform',
+                'c': 'Amplify the input signal', 'd': 'Rectify the AC signal',
                 'ans': 'A', 'marks': 1,
-                'exp': 'One eigenvalue is 0, so det(A) = 0, meaning A is singular (not invertible). Saying A is invertible is FALSE.'
+                'exp': 'Clippers remove a portion of the input waveform above or below a reference level.'
             },
+            # Unit 2: clamper purpose
             {
-                'desc': (
-                    'Which of the following matrices is diagonalizable?'
-                ),
-                'a': 'A matrix with n distinct eigenvalues',
-                'b': 'Any singular matrix',
-                'c': 'Any symmetric matrix with repeated eigenvalues',
-                'd': 'Any matrix with only one eigenvalue',
+                'desc': 'A clamper circuit is used to:',
+                'a': 'Shift the DC level of a waveform without altering its shape',
+                'b': 'Remove a portion of the input waveform',
+                'c': 'Amplify the input signal',
+                'd': 'Convert AC to DC',
                 'ans': 'A', 'marks': 1,
-                'exp': 'A matrix with n distinct eigenvalues always has n linearly independent eigenvectors, so it is diagonalizable.'
+                'exp': 'Clampers shift the DC level of a waveform without changing its shape. Also called DC restorers.'
             },
+            # Unit 2: clamper component
             {
-                'desc': (
-                    'Let V = span{(1, 1, 0)} in ℝ³. What is the orthogonal complement V⊥?'
-                ),
-                'a': 'All (x, y, z) with x + y = 0',
-                'b': 'All (x, y, z) with x = y',
-                'c': 'All (x, y, z) with z = 0',
-                'd': 'Only the zero vector',
+                'desc': 'Which component is essential in a clamper circuit to store the DC level?',
+                'a': 'Capacitor', 'b': 'Inductor', 'c': 'Resistor', 'd': 'Transformer',
                 'ans': 'A', 'marks': 1,
-                'exp': 'Orthogonal complement of (1,1,0) is the set of vectors (x,y,z) satisfying x·1 + y·1 + z·0 = 0, i.e., x + y = 0. Dimension = 2.'
+                'exp': 'A capacitor stores the DC level in a clamper circuit.'
             },
         ]
 

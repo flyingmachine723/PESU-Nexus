@@ -29,7 +29,6 @@ function renderMarkdown(targetEl, rawText) {
     if (typeof marked !== 'undefined') {
         htmlFromMd = marked.parse(raw);
     } else {
-        // Fallback if marked fails to load
         htmlFromMd = raw
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -43,7 +42,6 @@ function renderMarkdown(targetEl, rawText) {
         targetEl.innerHTML = htmlFromMd;
     }
 
-    // Syntax-highlight any code blocks
     if (typeof hljs !== 'undefined') {
         targetEl.querySelectorAll('pre code').forEach(function(block) {
             hljs.highlightElement(block);
@@ -83,6 +81,15 @@ function renderQuestion() {
 
     // Render markdown → sanitized HTML for question text
     renderMarkdown(questionText, item.question_desc);
+
+    // ⚡ Append question image if present
+    if (item.question_image) {
+        const img = document.createElement('img');
+        img.src = item.question_image;
+        img.alt = 'Question diagram';
+        img.className = 'q-diagram';
+        questionText.appendChild(img);
+    }
 
     // Reset options
     ["A","B","C","D"].forEach(function(letter) {
