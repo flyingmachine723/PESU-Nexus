@@ -41,7 +41,7 @@ ENV/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/media/
+# /media/          # Uncommented so question images get committed to Git
 /staticfiles/
 /static/
 *.pot
