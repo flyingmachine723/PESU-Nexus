@@ -124,6 +124,7 @@ def take_test_view(request, test_id):
         questions_data.append({
             'id': question.id,
             'question_desc': question.question_desc,
+            'question_image': question.question_image.url if question.question_image else None,
             'option_a': question.option_a,
             'option_b': question.option_b,
             'option_c': question.option_c,
@@ -199,7 +200,6 @@ def submit_test_view(request):
     # FAST PATH — batch all DB operations into ~4 queries
     # ============================================================
 
-    # 1. Parse question IDs once
     question_ids = []
     for qid in answers.keys():
         try:
@@ -207,19 +207,16 @@ def submit_test_view(request):
         except (TypeError, ValueError):
             continue
 
-    # 2. Fetch all needed questions in ONE query
     questions_by_id = Question.objects.filter(
         id__in=question_ids,
         test=attempt.test
     ).in_bulk()
 
-    # 3. Fetch existing answers for this attempt in ONE query
     existing_answers = {
         ans.question_id: ans
         for ans in Answer.objects.filter(attempt=attempt)
     }
 
-    # 4. Build create/update lists and compute score in memory
     to_create = []
     to_update = []
     score = 0
@@ -248,7 +245,6 @@ def submit_test_view(request):
                 selected_answer=selected_answer,
             ))
 
-    # 5. Write everything in ONE transaction (batched)
     with transaction.atomic():
         if to_create:
             Answer.objects.bulk_create(to_create, batch_size=500)
@@ -335,7 +331,6 @@ def test_analysis_view(request, attempt_id):
 
     total_attempts = len(first_attempts)
 
-    # Average score across all unique test-takers (as a percentage)
     average_score = 0
     if total_attempts > 0 and total_marks > 0:
         total_score_sum = sum(entry['score'] for entry in first_attempts)
@@ -395,6 +390,7 @@ def test_questions_view(request, attempt_id):
         review_data.append({
             'id': q.id,
             'question_desc': q.question_desc,
+            'question_image': q.question_image.url if q.question_image else None,
             'option_a': q.option_a,
             'option_b': q.option_b,
             'option_c': q.option_c,
@@ -422,11 +418,6 @@ def test_questions_view(request, attempt_id):
 def _first_attempts_for_test(test):
     """
     Return a sorted list of first-attempts (one per user) for a test.
-
-    Rules:
-      - Only completed attempts count
-      - One entry per user: their earliest-started completed attempt
-      - Sort by score DESC, then time_taken ASC (faster wins ties)
     """
 
     all_attempts = (
@@ -478,7 +469,6 @@ def test_leaderboard_view(request, attempt_id):
 
     total_marks = entries[0]['total_marks'] if entries else 0
 
-    # Assign ranks
     for idx, entry in enumerate(entries, start=1):
         entry['rank'] = idx
 
@@ -495,7 +485,6 @@ def test_leaderboard_view(request, attempt_id):
         and current_user_entry['rank'] <= 20
     )
 
-    # Chart data for top 10 bar chart
     chart_top = top_20[:10]
     lb_chart_labels = json.dumps([e['username'] for e in chart_top])
     lb_chart_scores = json.dumps([
@@ -504,7 +493,6 @@ def test_leaderboard_view(request, attempt_id):
     ])
     lb_chart_raw = json.dumps([e['score'] for e in chart_top])
 
-    # Score distribution buckets: 0-20, 21-40, 41-60, 61-80, 81-100
     buckets = [0, 0, 0, 0, 0]
     for e in entries:
         pct = (e['score'] / e['total_marks'] * 100) if e['total_marks'] else 0
@@ -535,11 +523,6 @@ def test_leaderboard_view(request, attempt_id):
 
 @login_required
 def attempt_history_view(request):
-    """
-    Shows one row per test — the user's latest completed attempt for that test.
-    Also builds chart data for graphical display.
-    """
-
     completed_attempts = (
         Test_Attempt.objects
         .filter(user=request.user, completed_at__isnull=False)

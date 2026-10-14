@@ -46,7 +46,6 @@
         .topbar-sep{width:1px;height:20px;background:var(--border);}
         .topbar-title{font-size:14px;font-weight:600;color:#fff;}
 
-        /* progress bar */
         .progress-bar-wrap{
             flex:1;max-width:260px;
             height:4px;background:var(--border);border-radius:2px;overflow:hidden;
@@ -60,7 +59,6 @@
             white-space:nowrap;
         }
 
-        /* timer */
         #timer{
             font-family:var(--mono);font-size:16px;font-weight:700;
             color:var(--accent);
@@ -74,7 +72,6 @@
         #timer.warning{color:var(--yellow);border-color:rgba(245,197,66,0.35);background:rgba(245,197,66,0.06);}
         #timer.danger{color:var(--red);border-color:rgba(248,113,113,0.35);background:rgba(248,113,113,0.06);}
 
-        /* ---- LAYOUT ---- */
         .test-body{
             display:grid;
             grid-template-columns:1fr 260px;
@@ -84,7 +81,6 @@
             padding:0 28px 80px;
         }
 
-        /* ---- QUESTION CARD ---- */
         .question-card{
             background:var(--surface);
             border:1px solid var(--border);
@@ -145,6 +141,19 @@
             font-size:inherit;
         }
 
+        /* ---- Question image ---- */
+        .q-text .q-diagram{
+            display:block;
+            max-width:100%;
+            max-height:400px;
+            margin:16px 0;
+            border-radius:8px;
+            border:1px solid var(--border);
+            background:#060a12;
+            padding:8px;
+            object-fit:contain;
+        }
+
         .options{display:flex;flex-direction:column;gap:10px;}
         .option{
             display:flex;align-items:center;gap:14px;
@@ -177,7 +186,6 @@
             background:var(--accent);color:#04120d;border-color:var(--accent);
         }
 
-        /* ---- NAVIGATION ---- */
         .nav-row{
             display:flex;justify-content:space-between;align-items:center;
             margin-top:24px;gap:12px;
@@ -203,7 +211,6 @@
         .nav-btn-submit:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 0 20px rgba(62,229,176,0.35);}
         .nav-btn:disabled{opacity:0.35;cursor:not-allowed;}
 
-        /* ---- QUESTION PALETTE (sidebar) ---- */
         .palette-card{
             background:var(--surface);
             border:1px solid var(--border);
@@ -257,7 +264,6 @@
     });
 </script>
 
-<!-- TOP BAR -->
 <div class="topbar">
     <div class="topbar-left">
         <span class="topbar-brand">P</span>
@@ -275,10 +281,7 @@
     <div id="timer">--:--</div>
 </div>
 
-<!-- BODY -->
 <div class="test-body">
-
-    <!-- Question card -->
     <div>
         <div class="question-card">
             <div class="q-meta">
@@ -301,7 +304,6 @@
         </div>
     </div>
 
-    <!-- Palette sidebar -->
     <div class="palette-card">
         <div class="palette-title">Question Palette</div>
         <div class="palette-grid" id="palette-grid"></div>
@@ -311,7 +313,6 @@
             <div class="legend-item"><div class="legend-dot legend-dot-empty"></div>Not visited</div>
         </div>
     </div>
-
 </div>
 
 {{ questions_data|json_script:"questions-data" }}
@@ -320,7 +321,6 @@
 
 <script src="{% static 'mocktests/js/take_test.js' %}"></script>
 <script>
-// Palette & progress enhancements
 (function(){
     function syncPalette(){
         var grid=document.getElementById('palette-grid');
@@ -342,11 +342,9 @@
         if(fill)fill.style.width=(total?Math.round(done/total*100):0)+'%';
         if(lbl)lbl.textContent=done+' / '+total;
     }
-    // Poll every 400ms
     setInterval(syncPalette,400);
     syncPalette();
 
-    // Timer warning colors
     setInterval(function(){
         var el=document.getElementById('timer');
         if(!el)return;

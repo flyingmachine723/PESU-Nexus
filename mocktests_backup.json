@@ -1,0 +1,105 @@
+[
+{
+  "model": "mocktests.mock_test",
+  "pk": 1,
+  "fields": {
+    "title": "Chemistry ISA-1 Mock Test",
+    "description": "This test covers Unit 1 (Molecular Spectroscopy & Computational Chemistry) and Unit 2 (Electrochemical Equilibria & Corrosion Chemistry). 30 questions, 65 minutes.",
+    "course_name": "Engineering Chemistry",
+    "semester": 1,
+    "total_qns": 30,
+    "duration": 65,
+    "created_at": "2026-10-01T13:19:00.752Z"
+  }
+},
+{
+  "model": "mocktests.mock_test",
+  "pk": 5,
+  "fields": {
+    "title": "EPD ISA-1 Mock Test",
+    "description": "Unit 1 (Semiconductor Diode) and Unit 2 (Diode Applications). 30 questions, 40 marks, 65 minutes.",
+    "course_name": "Electronic Principles and Devices",
+    "semester": 1,
+    "total_qns": 30,
+    "duration": 65,
+    "created_at": "2026-10-01T15:38:20.556Z"
+  }
+},
+{
+  "model": "mocktests.mock_test",
+  "pk": 8,
+  "fields": {
+    "title": "Math-1 ISA-1 Mock Test",
+    "description": "Unit 1 (Partial Differentiation) and Unit 2 (Higher Order LDEs). 20 questions, 40 marks, 65 minutes.",
+    "course_name": "Mathematics",
+    "semester": 1,
+    "total_qns": 20,
+    "duration": 65,
+    "created_at": "2026-10-01T16:19:00.298Z"
+  }
+},
+{
+  "model": "mocktests.mock_test",
+  "pk": 10,
+  "fields": {
+    "title": "PCPS (Python) Unit 1 & 2 Mock Test",
+    "description": "Python for Computational Problem Solving. Unit 1 & Unit 2. 40 questions, 40 marks, 65 minutes.",
+    "course_name": "Python for Computational Problem Solving",
+    "semester": 1,
+    "total_qns": 40,
+    "duration": 65,
+    "created_at": "2026-10-01T16:36:29.365Z"
+  }
+},
+{
+  "model": "mocktests.mock_test",
+  "pk": 11,
+  "fields": {
+    "title": "OS ISA-1 Mock Test",
+    "description": "Operating Systems. Processes, Scheduling, Synchronization, Deadlock, Threads, IPC. 30 questions, 40 marks, 65 minutes.",
+    "course_name": "Operating Systems",
+    "semester": 3,
+    "total_qns": 30,
+    "duration": 65,
+    "created_at": "2026-10-10T03:05:57.000Z"
+  }
+},
+{
+  "model": "mocktests.mock_test",
+  "pk": 13,
+  "fields": {
+    "title": "CN ISA-1 Mock Test",
+    "description": "Computer Networks. HTTP, DNS, TCP/UDP, Reliable Data Transfer, OSI Model, Switching, Delay Calculations. 30 questions, 40 marks, 65 minutes.",
+    "course_name": "Computer Networks",
+    "semester": 3,
+    "total_qns": 30,
+    "duration": 65,
+    "created_at": "2026-10-10T03:23:46.214Z"
+  }
+},
+{
+  "model": "mocktests.mock_test",
+  "pk": 14,
+  "fields": {
+    "title": "DLCD ISA-1 Mock Test",
+    "description": "Digital Logic and Computer Design. K-Maps, Boolean Algebra, Combinational Circuits, Sequential Circuits, FSMs, Adders, IEEE 754. 30 questions, 40 marks, 65 minutes.",
+    "course_name": "Digital Logic and Computer Design",
+    "semester": 3,
+    "total_qns": 30,
+    "duration": 65,
+    "created_at": "2026-10-10T03:28:56.422Z"
+  }
+},
+{
+  "model": "mocktests.mock_test",
+  "pk": 15,
+  "fields": {
+    "title": "Math for AI & DS ISA-1 Mock Test",
+    "description": "Linear Algebra for AI & DS. Fundamental Subspaces, LU/LDU, QR, SVD, Projections, Eigenvalues, PCA, Positive Definite. 30 questions, 40 marks, 65 minutes.",
+    "course_name": "Mathematics for AI & DS",
+    "semester": 3,
+    "total_qns": 30,
+    "duration": 65,
+    "created_at": "2026-10-10T03:32:48.805Z"
+  }
+}

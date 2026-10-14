@@ -93,6 +93,15 @@ function renderQuestion() {
     // Render markdown → sanitized HTML
     renderMarkdown(questionText, question.question_desc);
 
+    // ⚡ Append question image if present
+    if (question.question_image) {
+        const img = document.createElement('img');
+        img.src = question.question_image;
+        img.alt = 'Question diagram';
+        img.className = 'q-diagram';
+        questionText.appendChild(img);
+    }
+
     setOptionText('A', question.option_a);
     setOptionText('B', question.option_b);
     setOptionText('C', question.option_c);
@@ -127,7 +136,6 @@ function showSelectedAnswer() {
     ['A','B','C','D'].forEach(function(letter) {
         const el = optionEls[letter];
         if (!el) return;
-        // Remove selection classes; rely on CSS only (no inline styles)
         el.classList.toggle('selected', selected === letter);
     });
 }
